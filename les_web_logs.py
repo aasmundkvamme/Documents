@@ -5,7 +5,7 @@ import gzip
 import shutil
 from datetime import date, datetime
 import time
-import aasmund
+import aasmund_ny
 import smtplib
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -16,9 +16,9 @@ import os
 import glob
 import logging
 
-base_url = aasmund.CD2_base_url
-client_id = aasmund.CD2_client_id
-client_secret = aasmund.CD2_client_secret
+base_url = aasmund_ny.CD2_base_url
+client_id = aasmund_ny.CD2_client_id
+client_secret = aasmund_ny.CD2_client_secret
 avsendar = "aasmund.kvamme@hvl.no"
 mottakarar = ["aasmund.kvamme@hvl.no", "alisa.rysaeva@hvl.no", "rdeb@hvl.no"]
 tittel = "CD2 web log"

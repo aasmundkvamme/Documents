@@ -5,7 +5,7 @@ import gzip
 import shutil
 from datetime import date, datetime
 import time
-import aasmund
+import aasmund_ny
 import smtplib
 from email.mime.text import MIMEText
 import smtplib
@@ -16,12 +16,11 @@ import os
 import glob
 import logging
 
-base_url = aasmund.CD2_base_url
-client_id = aasmund.CD2_client_id
-client_secret = aasmund.CD2_client_secret
+base_url = aasmund_ny.CD2_base_url
+client_id = aasmund_ny.CD2_client_id
+client_secret = aasmund_ny.CD2_client_secret
 avsendar = "aasmund.kvamme@hvl.no"
-mottakarar = ["aasmund.kvamme@hvl.no"]
-# mottakarar = ["aasmund.kvamme@hvl.no", "alisa.rysaeva@hvl.no", "rdeb@hvl.no"]
+mottakarar = ["aasmund.kvamme@hvl.no", "alisa.rysaeva@hvl.no", "rdeb@hvl.no"]
 tittel = "CD2 web log"
 idag = date.today().isoformat()
 
@@ -82,7 +81,7 @@ logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
 
-innhald = f"Resultat frå web_log {idag}\n"
+innhald = f"Resultat frå web_log {idag}\n(Eg hadde gløymt ei line tekst i koden, difor kom den så seint i dag. I morgon tidleg skal den etter planen komme 0530 ...)"
 
 
 send_epost(tittel, innhald, avsendar, mottakarar)
