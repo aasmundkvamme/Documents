@@ -1,5 +1,5 @@
 import requests
-import aasmund
+import aasmund_ny
 import pandas as pd
 from datetime import date
 import time
@@ -30,11 +30,11 @@ sis_course_id_bergen = "campusrom-BERGEN"
 parametreFS = {}
 hodeFS = {
   'Accept': 'application/json;version=1',
-  'Authorization': f'Basic {aasmund.tokenFS}'
+  'Authorization': f'Basic {aasmund_ny.tokenFS}'
 }
 
 # Set opp autorisasjon mot Canvas
-hodeCanvas = {"Authorization": f'Bearer {aasmund.tokenCanvas}'}
+hodeCanvas = {"Authorization": f'Bearer {aasmund_ny.tokenCanvas}'}
 parametreCanvas = {'per_page': 100}
 baseurl = "https://hvl.instructure.com"
 GraphQlurl = "https://hvl.instructure.com/api/graphql"
@@ -169,15 +169,17 @@ def oppdater_campus(emne, sis_course_id, campusnamn):
 
     # Og til slutt sender eg alt til Canvas som SIS-import (eg sender ikkje tomme filer)
     # Dersom det er mange studentar bør eg dele CSV-filene opp i mindre blokkar (på 2000 kvar):
-    if len(slettliste) > 2000:
+    if len(slettliste) > 5000:
         slettlister = []
         n_blokker = len(slettliste) // 2000 + 1
         for i in range(n_blokker):
-            slett = slettliste[(i-1)*2000:i*2000]
-            slett.to_csv(f"slett_{i}.csv")
+            slett_delliste = slettliste[(i-1)*2000:i*2000]
+            slettdesse = pd.DataFrame(slett_delliste, columns=['user_id', 'course_id', 'role', 'status'])
+            slettdesse.to_csv(f"slett_{i}.csv")
             slettlister.append(f"slett_{i}.csv")
-        slett = slettliste[(n_blokker-1)*2000:]
-        slett.to_csv(f"slett_{n_blokker}.csv")
+        slett_delliste = slettliste[(n_blokker-1)*2000:]
+        slettdesse = pd.DataFrame(slett_delliste, columns=['user_id', 'course_id', 'role', 'status'])
+        slettdesse.to_csv(f"slett_{n_blokker}.csv")
         slettlister.append(f"slett_{n_blokker}.csv")
         for i in range(len(slettlister)):
             print(f"Behandler {slettlister[i]}")

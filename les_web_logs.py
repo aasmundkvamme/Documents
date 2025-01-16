@@ -7,7 +7,6 @@ from datetime import date, datetime
 import time
 import aasmund_ny
 import smtplib
-import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
@@ -19,12 +18,9 @@ import logging
 base_url = aasmund_ny.CD2_base_url
 client_id = aasmund_ny.CD2_client_id
 client_secret = aasmund_ny.CD2_client_secret
-avsendar = "aasmund.kvamme@hvl.no"
-mottakarar = ["aasmund.kvamme@hvl.no", "alisa.rysaeva@hvl.no", "rdeb@hvl.no"]
-tittel = "CD2 web log"
 idag = date.today().isoformat()
 
-def send_epost(tittel, innhald, avsender, mottakarar):
+def send_epost(tittel, innhald, avsender, mottakarar, vedlegg):
     msg = MIMEMultipart()
     msg['Subject'] = tittel
     msg['From'] = avsender
@@ -32,17 +28,14 @@ def send_epost(tittel, innhald, avsender, mottakarar):
     
     # Attach the email body to the message
     msg.attach(MIMEText(innhald, 'plain'))
-
-    # Specify the file to be sent
-    filename = "plattformbruk.csv"
     
     try:
-        with open(filename, "rb") as attachment:
+        with open(vedlegg, "rb") as attachment:
             # Create the attachment
             part = MIMEBase('application', 'octet-stream')
             part.set_payload(attachment.read())
             encoders.encode_base64(part)
-            part.add_header('Content-Disposition', f'attachment; filename= {filename}')
+            part.add_header('Content-Disposition', f'attachment; filename= {vedlegg}')
             
             # Attach the file to the email
             msg.attach(part)
@@ -191,20 +184,24 @@ for f in filar_i_dag:
             'value.user_agent',
             'value.user_id',
             'value.url',
+            'value.web_application_controller',
+            'value.web_application_action',
             'value.web_application_context_type',
             ]
         )
+    history_liste.append(data)
     data.dropna(subset=[
             'value.timestamp',
             'value.user_agent',
             'value.user_id',
             'value.url',
+            'value.web_application_controller',
+            'value.web_application_action',
             'value.web_application_context_type',
         ],
         inplace=True)
     data['dato'] = data['value.timestamp'].str[0:10]
     data['brukar'] = data['value.user_id'].apply(lambda x: str(int(x)))
-    history_liste.append(data)
 
     datoar = pd.unique(data.dato)
     user_agents = [
@@ -279,29 +276,34 @@ for f in filar_i_dag:
         temp_flattened.columns = ['_'.join(col).strip() for col in temp_flattened.columns.values]
         temp_flattened['dato'] = dato
         rekker.append(temp_flattened)
-    os.remove(f)
+    # os.remove(f)
 
-historydata = pd.concat(df for df in history_liste if not df.empty)
-historydata.to_csv("history.csv", index=False)
+samla_history = pd.concat(df for df in history_liste if not df.empty)
+samla_history.to_csv("history.csv", index=False)
 rekker_i_dag = pd.concat(rekker)
 gamle_rekker = pd.read_csv("plattformbruk.csv")
 oppdatert_plattformbruk = pd.concat([rekker_i_dag, gamle_rekker]).groupby('dato').sum().reset_index()
-oppdatert_plattformbruk.to_csv("plattformbruk.csv", index=False)
-logger.info("Har oppdatert fila plattformbruk.csv")
+# oppdatert_plattformbruk.to_csv("plattformbruk.csv", index=False)
+# logger.info("Har oppdatert fila plattformbruk.csv")
 tidsbruk_analyse = time.perf_counter() - start_analyse
 
+
+avsendar = "aasmund.kvamme@hvl.no"
+mottakarar = ["aasmund.kvamme@hvl.no", "alisa.rysaeva@hvl.no", "rdeb@hvl.no"]
+tittel = "CD2 web log"
 innhald = f"Resultat frå web_log {idag}\n"
 innhald += f"Sjekke oppdateringar: {tidsbruk_hent_oppdateringar:.3f} sekund.\n"
 innhald += f"Hente filar med oppdateringar: {tidsbruk_hent_filar:.3f} sekund.\n"
 innhald += f"Analysere data: {tidsbruk_analyse:.3f} sekund.\n"
 innhald += "\n"
-innhald += f"I alt er {grand_total} klikk registrert sidan {sist_oppdatert[0:10]}."
+innhald += f"I alt er {grand_total} klikk registrert sidan {sist_oppdatert[0:10]}.\n"
+vedlegg = "plattformbruk.csv"
 
 df = pd.read_csv("tid_logg.csv")
 df.loc[len(df)] = [idag, tidsbruk_hent_oppdateringar, tidsbruk_hent_filar, tidsbruk_analyse]
 df.to_csv('tid_logg.csv', index=False)
 
-send_epost(tittel, innhald, avsendar, mottakarar)
+send_epost(tittel, innhald, avsendar, mottakarar, vedlegg)
 
 # Skriv tidspunkt for siste oppdatering til fil
 with open('sist_oppdatert_web_logs.txt', 'w') as f_out:
