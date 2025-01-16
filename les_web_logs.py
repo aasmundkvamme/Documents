@@ -276,10 +276,10 @@ for f in filar_i_dag:
         temp_flattened.columns = ['_'.join(col).strip() for col in temp_flattened.columns.values]
         temp_flattened['dato'] = dato
         rekker.append(temp_flattened)
-    # os.remove(f)
+    os.remove(f)
 
 samla_history = pd.concat(df for df in history_liste if not df.empty)
-samla_history.to_csv("history.csv", index=False)
+samla_history.to_csv("dagens_web_log.csv", index=False)
 rekker_i_dag = pd.concat(rekker)
 gamle_rekker = pd.read_csv("plattformbruk.csv")
 oppdatert_plattformbruk = pd.concat([rekker_i_dag, gamle_rekker]).groupby('dato').sum().reset_index()
